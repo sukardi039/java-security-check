@@ -1,39 +1,38 @@
-name: Security Checks
+name: OWASP Dependency Check
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
   pull_request:
-    branches:
-      - main
 
 jobs:
-  security:
+  dependency-check:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up JDK 11
+      - name: Set up JDK
         uses: actions/setup-java@v3
         with:
-          distribution: 'adopt'
-          java-version: '11'
+          distribution: 'temurin'
+          java-version: '17' # Change as needed for your project
 
-      - name: Run Security Scan
-        run: |
-          curl -LO https://github.com/jeremylong/DependencyCheck/releases/download/v6.5.3/dependency-check-6.5.3-release.zip
-          unzip dependency-check-6.5.3-release.zip
-          mkdir -p report
-          ./dependency-check/bin/completion-for-dependency-check.sh --project JavaSecurityCheck --scan ./ --format HTML --out report --disableAssembly -v
-
-      - name: List report contents (for debugging)
-        run: ls -l report
-
-      - name: Upload Report
-        uses: actions/upload-artifact@v4
+      - name: Run OWASP Dependency Check
+        uses: dependency-check/gh-action@v3.0.3
         with:
-          name: security-report
-          path: report/dependency-check-report.html
+          project: "${{ github.repository }}"
+          scan: "."
+          format: "ALL"
+          out: "dependency-check-report"
+          args: >-
+            --failOnCVSS 7
+            --enableExperimental
+
+      - name: Upload dependency check report
+        uses: actions/upload-artifact@v3
+        with:
+          name: dependency-check-report
+          path: dependency-check-report
