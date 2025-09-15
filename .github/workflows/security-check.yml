@@ -26,10 +26,14 @@ jobs:
         run: |
           curl -LO https://github.com/jeremylong/DependencyCheck/releases/download/v6.5.3/dependency-check-6.5.3-release.zip
           unzip dependency-check-6.5.3-release.zip
+          mkdir -p report
           ./dependency-check/bin/dependency-check.sh --project JavaSecurityCheck --scan ./ --format HTML --out report --disableAssembly -v
+
+      - name: List report contents (for debugging)
+        run: ls -l report
 
       - name: Upload Report
         uses: actions/upload-artifact@v4
         with:
           name: security-report
-          path: report
+          path: report/dependency-check-report.html
